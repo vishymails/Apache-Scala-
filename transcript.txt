@@ -1,187 +1,309 @@
+/*
+ * Copyright (C) 2007-2016 Artima, Inc. All rights reserved.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * Automatically generated Scala interpreter transcript from:
+ *
+ * Programming in Scala (Third Edition)
+ * by Martin Odersky, Lex Spoon, Bill Venners
+ *
+ * http://booksites.artima.com/programming_in_scala_3ed
+ */
 
-scala>   trait Philosophical {
-           def philosophize() = {
-             println("I consume memory, therefore I am!")
+
+scala>   trait RationalTrait { 
+           val numerArg: Int 
+           val denomArg: Int 
+           require(denomArg != 0)
+           private val g = gcd(numerArg, denomArg)
+           val numer = numerArg / g
+           val denom = denomArg / g
+           private def gcd(a: Int, b: Int): Int = 
+             if (b == 0) a else gcd(b, a % b)
+           override def toString = numer + "/" + denom
+         }
+
+defined trait RationalTrait
+
+scala> val x = 2
+x: Int = 2
+
+scala> new RationalTrait {
+         val numerArg = 1 * x
+         val denomArg = 2 * x
+       }
+java.lang.IllegalArgumentException: requirement failed
+  at scala.Predef$.require(Predef.scala:207)
+  at RationalTrait$class.$init$(<console>:10)
+  ... 28 elided
+
+scala> new { 
+         val numerArg = 1 * x
+         val denomArg = 2 * x 
+       } with RationalTrait
+res1: RationalTrait = 1/2
+
+scala> new {
+         val numerArg = 1
+         val denomArg = this.numerArg * 2
+       } with RationalTrait
+<console>:11: error: value numerArg is not a member of object $iw
+                val denomArg = this.numerArg * 2
+                                    ^
+
+scala> object Demo {
+         val x = { println("initializing x"); "done" }
+       }
+defined object Demo
+
+scala> Demo
+initializing x
+res3: Demo.type = Demo$@1628d678
+
+scala> Demo.x
+res4: String = done
+
+scala> object Demo {
+         lazy val x = { println("initializing x"); "done" }
+       }
+defined object Demo
+
+scala> Demo
+res5: Demo.type = Demo$@cb2d332
+
+scala> Demo.x
+initializing x
+res6: String = done
+
+scala>   trait LazyRationalTrait { 
+           val numerArg: Int 
+           val denomArg: Int 
+           lazy val numer = numerArg / g
+           lazy val denom = denomArg / g
+           override def toString = numer + "/" + denom
+           private lazy val g = {
+             require(denomArg != 0)
+             gcd(numerArg, denomArg)
            }
+           private def gcd(a: Int, b: Int): Int = 
+             if (b == 0) a else gcd(b, a % b)
          }
 
-defined trait Philosophical
+defined trait LazyRationalTrait
 
-scala>   class Frog extends Philosophical {
-           override def toString = "green"
+scala> val x = 2
+x: Int = 2
+
+scala> new LazyRationalTrait {
+         val numerArg = 1 * x
+         val denomArg = 2 * x
+       }
+res7: LazyRationalTrait = 1/2
+
+scala>   class Food
+         abstract class Animal {
+           type SuitableFood <: Food
+           def eat(food: SuitableFood)
          }
 
-defined class Frog
-
-scala> val frog = new Frog
-frog: Frog = green
-
-scala> frog.philosophize()
-I consume memory, therefore I am!
-
-scala> val phil: Philosophical = frog  
-phil: Philosophical = green
-
-scala> phil.philosophize()
-I consume memory, therefore I am!
-
-scala>   class Point(val x: Int, val y: Int)
-       
-
-defined class Point
-
-scala>   trait Rectangular {
-           def topLeft: Point
-           def bottomRight: Point
-       
-           def left = topLeft.x
-           def right = bottomRight.x
-           def width = right - left
-           // and many more geometric methods...
+         class Grass extends Food
+         class Cow extends Animal {
+           type SuitableFood = Grass
+           override def eat(food: Grass) = {}
          }
 
-defined trait Rectangular
+defined class Food
+defined class Animal
+defined class Grass
+defined class Cow
 
-scala>   class Rectangle(val topLeft: Point, val bottomRight: Point)
-             extends Rectangular {
-       
-           // other methods...
+scala> class Fish extends Food
+defined class Fish
+
+scala> val bessy: Animal = new Cow
+bessy: Animal = Cow@5f69743c
+
+scala> bessy eat (new Fish)
+<console>:14: error: type mismatch;
+ found   : Fish
+ required: bessy.SuitableFood
+              bessy eat (new Fish)
+                         ^
+
+scala>   class DogFood extends Food
+         class Dog extends Animal {
+           type SuitableFood = DogFood
+           override def eat(food: DogFood) = {}
          }
 
-defined class Rectangle
+defined class DogFood
+defined class Dog
 
-scala> val rect = new Rectangle(new Point(1, 1),
-           new Point(10, 10))
-rect: Rectangle = Rectangle@4af0d27b
+scala> val bessy = new Cow
+bessy: Cow = Cow@6d4410c1
 
-scala> rect.left
-res2: Int = 1
+scala> val lassie = new Dog
+lassie: Dog = Dog@2fc151fc
 
-scala> rect.right
-res3: Int = 10
+scala> lassie eat (new bessy.SuitableFood)
+<console>:16: error: type mismatch;
+ found   : Grass
+ required: DogFood
+              lassie eat (new bessy.SuitableFood)
+                          ^
 
-scala> rect.width
-res4: Int = 9
+scala> val bootsie = new Dog
+bootsie: Dog = Dog@1a077247
 
-scala>    class Rational(n: Int, d: Int) extends Ordered[Rational] {
-           def compare(that: Rational) =
-             (this.numer * that.denom) - (that.numer * this.denom)
-
-        private val g = gcd(n.abs, d.abs)
-        val numer = n / g
-        val denom = d / g
-        private def gcd(a: Int, b: Int): Int = 
-          if (b == 0) a else gcd(b, a % b)
-        override def toString = numer + "/" + denom
-        }
-defined class Rational
-
-scala> val half = new Rational(1, 2)
-half: Rational = 1/2
-
-scala> val third = new Rational(1, 3)
-third: Rational = 1/3
-
-scala> half < third
-res5: Boolean = false
-
-scala> half > third
-res6: Boolean = true
-
-scala>   abstract class IntQueue {
-           def get(): Int
-           def put(x: Int)
+scala>   class Outer {
+           class Inner
          }
 
-defined class IntQueue
+defined class Outer
 
-scala>   import scala.collection.mutable.ArrayBuffer
-       
-         class BasicIntQueue extends IntQueue {
-           private val buf = new ArrayBuffer[Int]
-           def get() = buf.remove(0)
-           def put(x: Int) = { buf += x }
+scala>   val o1 = new Outer
+         val o2 = new Outer
+
+o1: Outer = Outer@73836c7f
+o2: Outer = Outer@39484118
+
+scala> new o1.Inner
+res11: o1.Inner = Outer$Inner@1570e991
+
+scala> new Outer#Inner
+<console>:9: error: Outer is not a legal prefix for a constructor
+              new Outer#Inner
+                        ^
+
+scala>   object Direction extends Enumeration {
+           val North = Value("North")
+           val East = Value("East")
+           val South = Value("South")
+           val West = Value("West")
          }
 
-import scala.collection.mutable.ArrayBuffer
-defined class BasicIntQueue
+defined object Direction
 
-scala> val queue = new BasicIntQueue
-queue: BasicIntQueue = BasicIntQueue@d63e4d8
+scala> for (d <- Direction.values) print(d + " ")
+North East South West 
+scala> Direction.East.id
+res14: Int = 1
 
-scala> queue.put(10)
+scala> Direction(1)
+res15: Direction.Value = East
 
-scala> queue.put(20)
+scala>   abstract class CurrencyZone {
+           type Currency <: AbstractCurrency
+           def make(x: Long): Currency
+           abstract class AbstractCurrency {
+             val amount: Long
+             def designation: String 
+             def + (that: Currency): Currency = 
+               make(this.amount + that.amount)
+             def * (x: Double): Currency = 
+               make((this.amount * x).toLong)
 
-scala> queue.get()
-res9: Int = 10
+            def from(other: CurrencyZone#AbstractCurrency): Currency = 
+           make(math.round(
+             other.amount.toDouble * Converter.exchangeRate
+               (other.designation)(this.designation)))
 
-scala> queue.get()
-res10: Int = 20
+            private def decimals(n: Long): Int = 
+           if (n == 1) 0 else 1 + decimals(n / 10)
 
-scala>   trait Doubling extends IntQueue {
-           abstract override def put(x: Int) = { super.put(2 * x) }
+            override def toString = 
+           ((amount.toDouble / CurrencyUnit.amount.toDouble)
+            formatted ("%." + decimals(CurrencyUnit.amount) + "f")
+            + " " + designation)
+
          }
-
-defined trait Doubling
-
-scala> class MyQueue extends BasicIntQueue with Doubling
-defined class MyQueue
-
-scala> val queue = new MyQueue
-queue: MyQueue = MyQueue@24af4e03
-
-scala> queue.put(10)
-
-scala> queue.get()
-res12: Int = 20
-
-scala> val queue = new BasicIntQueue with Doubling
-queue: BasicIntQueue with Doubling = $anon$1@6d3396fa
-
-scala> queue.put(10)
-
-scala> queue.get()
-res14: Int = 20
-
-scala>   trait Incrementing extends IntQueue {
-           abstract override def put(x: Int) = { super.put(x + 1) }
-         }
-
-defined trait Incrementing
-
-scala>   trait Filtering extends IntQueue {
-           abstract override def put(x: Int) = {
-             if (x >= 0) super.put(x)
+         val CurrencyUnit: Currency
+       }
+         object US extends CurrencyZone {
+           abstract class Dollar extends AbstractCurrency {
+             def designation = "USD"
            }
+           type Currency = Dollar
+           def make(cents: Long) = new Dollar {
+             val amount = cents
+           }
+           val Cent = make(1)
+           val Dollar = make(100)
+           val CurrencyUnit = Dollar
          }
 
-defined trait Filtering
+         object Europe extends CurrencyZone {
+           abstract class Euro extends AbstractCurrency {
+             def designation = "EUR"
+           }
+           type Currency = Euro
+           def make(cents: Long) = new Euro {
+             val amount = cents
+           }
+           val Cent = make(1)
+           val Euro = make(100)
+           val CurrencyUnit = Euro
+         }
+       
+         object Japan extends CurrencyZone {
+           abstract class Yen extends AbstractCurrency {
+             def designation = "JPY"
+           }
+           type Currency = Yen
+           def make(yen: Long) = new Yen {
+             val amount = yen
+           }
+           val Yen = make(1)
+           val CurrencyUnit = Yen
+         }
 
-scala> val queue = (new BasicIntQueue
-           with Incrementing with Filtering)
-queue: BasicIntQueue with Incrementing with Filtering = $anon$1@683dcd53
+         object Converter {
+           var exchangeRate = Map(
+             "USD" -> Map("USD" -> 1.0   , "EUR" -> 0.7596, 
+                          "JPY" -> 1.211 , "CHF" -> 1.223),
+             "EUR" -> Map("USD" -> 1.316 , "EUR" -> 1.0   , 
+                          "JPY" -> 1.594 , "CHF" -> 1.623),
+             "JPY" -> Map("USD" -> 0.8257, "EUR" -> 0.6272, 
+                          "JPY" -> 1.0   , "CHF" -> 1.018),
+             "CHF" -> Map("USD" -> 0.8108, "EUR" -> 0.6160, 
+                          "JPY" -> 0.982 , "CHF" -> 1.0  )
+           )
+         }
 
-scala> queue.put(-1); queue.put(0); queue.put(1)
+defined class CurrencyZone
+defined object US
+defined object Europe
+defined object Japan
+defined object Converter
 
-scala> queue.get()
-res16: Int = 1
+scala> Japan.Yen from US.Dollar * 100
+res16: Japan.Currency = 12110 JPY
 
-scala> queue.get()
-res17: Int = 2
+scala> Europe.Euro from res16
+res17: Europe.Currency = 75.95 EUR
 
-scala> val queue = (new BasicIntQueue
-           with Filtering with Incrementing)
-queue: BasicIntQueue with Filtering with Incrementing = $anon$1@3cd12c3d
+scala> US.Dollar from res17
+res18: US.Currency = 99.95 USD
 
-scala> queue.put(-1); queue.put(0); queue.put(1)
+scala> US.Dollar * 100 + res18
+res19: US.Currency = 199.95 USD
 
-scala> queue.get()
-res19: Int = 0
-
-scala> queue.get()
-res20: Int = 1
-
-scala> queue.get()
-res21: Int = 2
+scala> US.Dollar + Europe.Euro
+<console>:12: error: type mismatch;
+ found   : Europe.Euro
+ required: US.Currency
+    (which expands to)  US.Dollar
+              US.Dollar + Europe.Euro
+                                 ^
 
